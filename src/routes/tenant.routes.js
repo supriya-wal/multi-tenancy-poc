@@ -10,10 +10,12 @@ router.post("/", async (req, res) => {
     if (!name) return res.status(400).json({ error: "Tenant name is required" });
 
     try {
+        const existingTenantName = await Tenant.findOne({ where: { name }})
+        if (existingTenantName) return res.status(400).json({ error: "Tenant name already exists.Try with different name" });
         const dbName = `tenant_${name}_${Date.now()}`;
         const tenant = await Tenant.create({ name, dbName });
 
-        await connectToTenantDB(tenant.id); // Create new tenant DB
+        await connectToTenantDB(tenant.id, tenant.name); // Create new tenant DB
 
         res.status(201).json({ message: "Tenant created", tenant });
     } catch (error) {
